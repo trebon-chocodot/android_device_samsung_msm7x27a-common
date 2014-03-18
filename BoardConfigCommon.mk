@@ -1,4 +1,4 @@
-# Copyright (C) 2013 The CyanogenMod Project
+# Copyright (C) 2014 The CyanogenMod Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# BoardConfig.mk
+# BoardConfigCommon.mk
 #
 
 ## Kernel, bootloader etc.
@@ -30,67 +30,50 @@ TARGET_BOARD_PLATFORM := msm7x27a
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_CPU_VARIANT := cortex-a5
+TARGET_ARCH_VARIANT_CPU := cortex-a5
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/msm7x27a-common/include
 
-TARGET_USE_QCOM_BIONIC_OPTIMIZATION := true
+TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
+
+## Bionic
+TARGET_CORTEX_CACHE_LINE_32 := true
+TARGET_USE_SPARROW_BIONIC_OPTIMIZATION := true
+ARCH_ARM_HAVE_32_BYTE_CACHE_LINES := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-TARGET_GLOBAL_CFLAGS += -mtune=cortex-a5 -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a5 -mfpu=neon -mfloat-abi=softfp
-
-## Allow compatibility with older recoveries
-SKIP_SET_METADATA := true
-
-## FM Radio
-#BOARD_HAVE_QCOM_FM := true
-#COMMON_GLOBAL_CFLAGS += -DQCOM_FM_ENABLED
-
-## Memory
-TARGET_USES_ION := true
-BOARD_NEEDS_MEMORYHEAPPMEM := true
-BOARD_USE_MHEAP_SCREENSHOT := true
-
 ## Camera
+BOARD_NEEDS_MEMORYHEAPPMEM := true
+BOARD_CAMERA_USE_MM_HEAP := true
+BOARD_USES_LEGACY_OVERLAY := true
 TARGET_DISABLE_ARM_PIE := true
-BOARD_USES_PMEM_ADSP := true
-COMMON_GLOBAL_CFLAGS += -DBINDER_COMPAT -DNEEDS_VECTORIMPL_SYMBOLS
-COMMON_GLOBAL_CFLAGS += -DCAMERA_NO_UNWANTED_MSG -DSAMSUNG_CAMERA_LEGACY
+COMMON_GLOBAL_CFLAGS += -DSAMSUNG_CAMERA_QCOM -DBINDER_COMPAT
+COMMON_GLOBAL_CFLAGS += -DCAMERA_NO_UNWANTED_MSG
 
-## Qcom hardwae
-BOARD_USES_QCOM_HARDWARE := true
-COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE
+## Audio, FM radio
+BOARD_HAVE_QCOM_FM := true
+COMMON_GLOBAL_CFLAGS += -DQCOM_FM_ENABLED -DHAVE_FM_RADIO
 
-## Video
-TARGET_QCOM_MEDIA_VARIANT := caf
-TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
-COMMON_GLOBAL_CFLAGS += -DQCOM_LEGACY_MMPARSER
+## Webkit
+ENABLE_WEBGL := true
+TARGET_FORCE_CPU_UPLOAD := true
 
-## Audio
-TARGET_QCOM_AUDIO_VARIANT := caf
-BOARD_USES_LEGACY_ALSA_AUDIO := true
-COMMON_GLOBAL_CFLAGS += -DNO_TUNNELED_SOURCE
-
-## EGL, graphics
+## Graphics, media
 USE_OPENGL_RENDERER := true
-TARGET_QCOM_DISPLAY_VARIANT := legacy
-TARGET_DOESNT_USE_FENCE_SYNC := true
+BOARD_USES_QCOM_HARDWARE := true
+BOARD_USES_QCOM_LIBS := true
+BOARD_USE_QCOM_PMEM := true
 BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
+BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
+TARGET_USES_16BPPSURFACE_FOR_OPAQUE := true
 BOARD_EGL_CFG := device/samsung/msm7x27a-common/prebuilt/lib/egl/egl.cfg
-
-## Qualcomm BSP
-TARGET_USES_QCOM_BSP := true
-COMMON_GLOBAL_CFLAGS += -DQCOM_BSP
+COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE -DREFRESH_RATE=64
 
 ## GPS
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_USES_QCOM_GPS := true
 BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := msm7x27a
 BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 50000
-
-## Webkit
-#PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
-TARGET_FORCE_CPU_UPLOAD := true
 
 ## Bluetooth
 BOARD_HAVE_BLUETOOTH := true
@@ -110,9 +93,6 @@ WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/ath6kl_sdio.ko"
 WIFI_DRIVER_MODULE_ARG := "suspend_mode=3 wow_mode=2 ath6kl_p2p=1 recovery_enable=1"
 
 ## RIL
-BOARD_USES_LEGACY_RIL := true
-BOARD_RIL_CLASS := ../../../device/samsung/msm7x27a-common/ril/
-
 BOARD_MOBILEDATA_INTERFACE_NAME := "pdp0"
 
 ## Vold
@@ -131,26 +111,13 @@ BOARD_LPM_BOOT_ARGUMENT_NAME := androidboot.boot_pause
 BOARD_LPM_BOOT_ARGUMENT_VALUE := batt
 
 ## Use device specific modules
-TARGET_PROVIDES_LIBLIGHT := true
-TARGET_PROVIDES_LIBAUDIO := true
-
-## Override healthd HAL
-BOARD_HAL_STATIC_LIBRARIES := libhealthd.msm7x27a
+TARGET_PROVIDES_LIBLIGHTS := true
+#TARGET_PROVIDES_LIBAUDIO := true
 
 ## Recovery
-DEVICE_RESOLUTION := 320x480
-RECOVERY_GRAPHICS_USE_LINELENGTH := true
-TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
-TW_DEFAULT_EXTERNAL_STORAGE := false
-TW_EXTERNAL_STORAGE_PATH := "/external_sd"
-TW_EXTERNAL_STORAGE_MOUNT_POINT := "external_sd"
-TW_INTERNAL_STORAGE_PATH := "/sdcard"
-TW_INTERNAL_STORAGE_MOUNT_POINT := "sdcard"
-TARGET_RECOVERY_INITRC := device/samsung/msm7x27a-common/recovery/init.recovery.qcom.rc
-TARGET_RECOVERY_FSTAB := device/samsung/msm7x27a-common/rootdir/fstab.qcom
+TARGET_RECOVERY_INITRC := device/samsung/msm7x27a-common/recovery/init.rc
+TARGET_RECOVERY_FSTAB := device/samsung/msm7x27a-common/recovery/recovery.fstab
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/samsung/msm7x27a-common/recovery/recovery_keys.c
-TARGET_RECOVERY_LCD_BACKLIGHT_PATH := \"/sys/class/leds/lcd-backlight/brightness\"
-TARGET_RECOVERY_SWIPE := true
 TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_HAS_SDCARD_INTERNAL := true

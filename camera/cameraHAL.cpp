@@ -21,6 +21,8 @@
 
 #define LOG_TAG "CameraHAL"
 
+#define GRALLOC_USAGE_PMEM_PRIVATE_ADSP GRALLOC_USAGE_PRIVATE_0
+
 #include <camera/CameraParameters.h>
 #include <hardware/camera.h>
 #include <binder/IMemory.h>
@@ -49,25 +51,25 @@ static int camera_get_number_of_cameras(void);
 static int camera_get_camera_info(int camera_id, struct camera_info *info);
 
 static struct hw_module_methods_t camera_module_methods = {
-    .open = camera_device_open
+    open: camera_device_open
 };
 
 static hw_module_t camera_common  = {
-    .tag = HARDWARE_MODULE_TAG,
-    .version_major = 1,
-    .version_minor = 1,
-    .id = CAMERA_HARDWARE_MODULE_ID,
-    .name = "Jellybean Camera Hal",
-    .author = "Raviprasad V Mummidi",
-    .methods = &camera_module_methods,
-    .dso = NULL,
-    .reserved = {0},
+    tag: HARDWARE_MODULE_TAG,
+    version_major: 1,
+    version_minor: 0,
+    id: CAMERA_HARDWARE_MODULE_ID,
+    name: "ICS Camera Hal",
+    author: "Raviprasad V Mummid",
+    methods: &camera_module_methods,
+    dso: NULL,
+    reserved: {0},
 };
 
 camera_module_t HAL_MODULE_INFO_SYM = {
-    .common = camera_common,
-    .get_number_of_cameras = camera_get_number_of_cameras,
-    .get_camera_info = camera_get_camera_info,
+    common: camera_common,
+    get_number_of_cameras: camera_get_number_of_cameras,
+    get_camera_info: camera_get_camera_info,
 };
 
 typedef struct priv_camera_device {
@@ -125,20 +127,20 @@ void CameraHAL_HandlePreviewData(priv_camera_device_t* dev, const sp<IMemory>& d
 
     sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
     if(heap == 0) {
-        ALOGE("%s: heap allocation failed", __FUNCTION__);
+        LOGE("%s: heap allocation failed", __FUNCTION__);
         return;
     }
 
     char *frame = (char *)(heap->base()) + offset;
 
-    ALOGV("%s: base:%p offset:%i frame:%p", __FUNCTION__, heap->base(), offset, frame);
+    LOGV("%s: base:%p offset:%i frame:%p", __FUNCTION__, heap->base(), offset, frame);
 
     int stride;
     void *vaddr;
     buffer_handle_t *buf_handle;
 
     if (0 != mWindow->dequeue_buffer(mWindow, &buf_handle, &stride)) {
-        ALOGE("%s: could not dequeue gralloc buffer", __FUNCTION__);
+        LOGE("%s: could not dequeue gralloc buffer", __FUNCTION__);
         goto skipframe;
     }
     if (dev->gralloc == NULL) {
@@ -148,21 +150,21 @@ void CameraHAL_HandlePreviewData(priv_camera_device_t* dev, const sp<IMemory>& d
                                 GRALLOC_USAGE_SW_WRITE_MASK,
                                 0, 0, dev->preview_width, dev->preview_height, &vaddr)) {
         memcpy(vaddr, frame, dev->preview_width * dev->preview_height * 3 / 2);
-        ALOGV("%s: copy frame to gralloc buffer", __FUNCTION__);
+        LOGV("%s: copy frame to gralloc buffer", __FUNCTION__);
     } else {
-        ALOGE("%s: could not lock gralloc buffer", __FUNCTION__);
+        LOGE("%s: could not lock gralloc buffer", __FUNCTION__);
         goto skipframe;
     }
 
     dev->gralloc->unlock(dev->gralloc, *buf_handle);
 
     if (0 != mWindow->enqueue_buffer(mWindow, buf_handle)) {
-        ALOGE("%s: could not dequeue gralloc buffer", __FUNCTION__);
+        LOGE("%s: could not dequeue gralloc buffer", __FUNCTION__);
         goto skipframe;
     }
 
 skipframe:
-    ALOGV("%s---: ", __FUNCTION__);
+    LOGV("%s---: ", __FUNCTION__);
 
     return;
 }
@@ -177,7 +179,7 @@ static void wrap_data_callback(int32_t msg_type, const sp<IMemory>& dataPtr, voi
     }
 
     if (dataPtr == NULL) {
-        ALOGE("%s+++: received null data", __FUNCTION__);
+        LOGE("%s+++: received null data", __FUNCTION__);
         return;
     }
 
@@ -258,12 +260,12 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
     int min_bufs     = -1;
     int kBufferCount = 4;
 
-    ALOGV("camera_set_preview_window : Window :%p\n", window);
+    LOGV("camera_set_preview_window : Window :%p\n", window);
     if (device == NULL) {
-        ALOGE("camera_set_preview_window : Invalid device.\n");
+        LOGE("camera_set_preview_window : Invalid device.\n");
         return -EINVAL;
     }
-    ALOGV("camera_set_preview_window : window :%p\n", window);
+    LOGV("camera_set_preview_window : window :%p\n", window);
 
     priv_camera_device_t* dev = (priv_camera_device_t*) device;
     dev->window = window;
@@ -272,23 +274,23 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
     }
     if (!dev->gralloc) {
         if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const hw_module_t **)&(dev->gralloc))) {
-            ALOGE("%s: Fail on loading gralloc HAL", __FUNCTION__);
+            LOGE("%s: Fail on loading gralloc HAL", __FUNCTION__);
         }
     }
     if (dev->window->get_min_undequeued_buffer_count(dev->window, &min_bufs)) {
-        ALOGE("%s---: could not retrieve min undequeued buffer count", __FUNCTION__);
+        LOGE("%s---: could not retrieve min undequeued buffer count", __FUNCTION__);
         return -1;
     }
 
-    ALOGV("%s: bufs: %i", __FUNCTION__, min_bufs);
+    LOGV("%s: bufs: %i", __FUNCTION__, min_bufs);
 
     if (min_bufs >= kBufferCount) {
-        ALOGE("%s: min undequeued buffer count %i is too high (expecting at most %i)", __FUNCTION__, min_bufs, kBufferCount - 1);
+        LOGE("%s: min undequeued buffer count %i is too high (expecting at most %i)", __FUNCTION__, min_bufs, kBufferCount - 1);
     }
 
-    ALOGV("%s: setting buffer count to %i", __FUNCTION__, kBufferCount);
+    LOGV("%s: setting buffer count to %i", __FUNCTION__, kBufferCount);
     if (dev->window->set_buffer_count(dev->window, kBufferCount)) {
-        ALOGE("%s---: could not set buffer count", __FUNCTION__);
+        LOGE("%s---: could not set buffer count", __FUNCTION__);
         return -1;
     }
 
@@ -297,13 +299,13 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
 
     const char *str_preview_format = params.getPreviewFormat();
 
-    ALOGV("%s: preview format %s", __FUNCTION__, str_preview_format);
+    LOGV("%s: preview format %s", __FUNCTION__, str_preview_format);
 
-    dev->window->set_usage(dev->window, GRALLOC_USAGE_PRIVATE_SYSTEM_HEAP | GRALLOC_USAGE_SW_READ_OFTEN);
+    dev->window->set_usage(dev->window, GRALLOC_USAGE_PMEM_PRIVATE_ADSP | GRALLOC_USAGE_SW_READ_OFTEN);
 
     if (dev->window->set_buffers_geometry(dev->window, dev->preview_width,
                                      dev->preview_height, HAL_PIXEL_FORMAT_YCrCb_420_SP)) {
-        ALOGE("%s---: could not set buffers geometry to %s", __FUNCTION__, str_preview_format);
+        LOGE("%s---: could not set buffers geometry to %s", __FUNCTION__, str_preview_format);
         return -1;
     }
     return 0;
@@ -315,7 +317,7 @@ void camera_set_callbacks(struct camera_device * device,
                           camera_data_timestamp_callback data_cb_timestamp,
                           camera_request_memory get_memory,
                           void *user) {
-    ALOGV("%s+++, device %p", __FUNCTION__,device);
+    LOGV("%s+++, device %p", __FUNCTION__,device);
 
     if(!device) return;
 
@@ -463,11 +465,11 @@ int camera_device_close(hw_device_t* device) {
 }
 
 void sighandle(int s) {
-    ALOGW("Segfault handled, ignoring");
+    LOGW("Segfault handled, ignoring");
 }
 
 int camera_device_open(const hw_module_t* module, const char* name, hw_device_t** device) {
-    ALOGI("CameraHAL v0.3.2");
+    LOGI("CameraHAL v0.3.2");
     int rv = 0;
     int cameraid;
     int num_cameras = 0;
@@ -481,21 +483,21 @@ int camera_device_open(const hw_module_t* module, const char* name, hw_device_t*
         num_cameras = HAL_getNumberOfCameras();
 
         if(cameraid > num_cameras) {
-            ALOGE("camera service provided cameraid out of bounds, cameraid = %d, num supported = %d", cameraid, num_cameras);
+            LOGE("camera service provided cameraid out of bounds, cameraid = %d, num supported = %d", cameraid, num_cameras);
             rv = -EINVAL;
             goto fail;
         }
 
         priv_camera_device = (priv_camera_device_t*)malloc(sizeof(*priv_camera_device));
         if(!priv_camera_device) {
-            ALOGE("camera_device allocation fail");
+            LOGE("camera_device allocation fail");
             rv = -ENOMEM;
             goto fail;
         }
 
         camera_ops = (camera_device_ops_t*)malloc(sizeof(*camera_ops));
         if(!camera_ops) {
-            ALOGE("camera_ops allocation fail");
+            LOGE("camera_ops allocation fail");
             rv = -ENOMEM;
             goto fail;
         }
@@ -540,7 +542,7 @@ int camera_device_open(const hw_module_t* module, const char* name, hw_device_t*
         sp<CameraHardwareInterface> camera = HAL_openCameraHardware(cameraid);
 
         if(camera == NULL) {
-            ALOGE("Couldn't create instance of CameraHal class");
+            LOGE("Couldn't create instance of CameraHal class");
             rv = -ENOMEM;
             goto fail;
         }
