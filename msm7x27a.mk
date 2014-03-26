@@ -47,8 +47,7 @@ PRODUCT_PACKAGES += \
     camera.msm7x27a \
     lights.msm7x27a \
     gps.msm7x27a \
-    power.msm7x27a \
-    libhealthd.msm7x27a
+    power.msm7x27a
 
 ## FM radio
 PRODUCT_PACKAGES += \
@@ -80,10 +79,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/samsung/msm7x27a-common/prebuilt/etc/media_profiles.xml:system/etc/media_profiles.xml \
     device/samsung/msm7x27a-common/prebuilt/etc/media_codecs.xml:system/etc/media_codecs.xml
-
-## Camera
-PRODUCT_COPY_FILES += \
-    device/samsung/msm7x27a-common/camera/camera.msm7x27a.so:system/lib/hw/camera.msm7x27a.so
 
 ## Rootdir
 PRODUCT_COPY_FILES += \
