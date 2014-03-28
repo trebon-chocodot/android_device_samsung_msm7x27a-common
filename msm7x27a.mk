@@ -16,7 +16,6 @@ DEVICE_PACKAGE_OVERLAYS += device/samsung/msm7x27a-common/overlay
 
 ## Video
 PRODUCT_PACKAGES += \
-    libdashplayer \
     libstagefrighthw \
     libmm-omxcore \
     libOmxCore
@@ -26,7 +25,6 @@ PRODUCT_PACKAGES += \
     copybit.msm7x27a \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
-    memtrack.msm7x27a \
     libtilerenderer
 
 ## Misc.
